@@ -16,7 +16,7 @@ public class GoCardlessWebHook : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost(Name = "GetGoCardlessWebHook")]
+    [HttpPost(Name = "GoCardlessWebHook")]
     public void Post([FromBody] GoCardlessWebHookDTO hook)
     {
         var ev = hook.events;
