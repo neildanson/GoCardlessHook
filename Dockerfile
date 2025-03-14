@@ -11,10 +11,10 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["GoCardlessHook.csproj", "GoCardlessHook/"]
-RUN dotnet restore "./GoCardlessHook/GoCardlessHook.csproj"
+COPY ["GoCardlessHook.csproj", "."]
+RUN dotnet restore "./GoCardlessHook.csproj"
 COPY . .
-WORKDIR "/src/GoCardlessHook"
+WORKDIR "/src/."
 RUN dotnet build "./GoCardlessHook.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
