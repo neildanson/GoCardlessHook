@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoCardlessHook", "GoCardlessHook\GoCardlessHook.csproj", "{D41BED24-B138-48EF-8CD7-0DE6065AB333}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D41BED24-B138-48EF-8CD7-0DE6065AB333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D41BED24-B138-48EF-8CD7-0DE6065AB333}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D41BED24-B138-48EF-8CD7-0DE6065AB333}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D41BED24-B138-48EF-8CD7-0DE6065AB333}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7AC2555-CD3F-4B42-A359-0D0CC429A848}
+	EndGlobalSection
+EndGlobal
