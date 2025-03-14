@@ -1,5 +1,5 @@
 ﻿#! spec.yaml
-name: GoCardlessHook
+name: gocardlesshook
 # Check https://www.digitalocean.com/docs/app-platform/#regional-availability
 # for a list of all the available options.
 # You can get region slugs from
@@ -8,7 +8,7 @@ name: GoCardlessHook
 # `fra` stands for Frankfurt (Germany - EU)
 region: fra
 services:
-  - name: GoCardlessHook
+  - name: gocardlesshook
     # Relative to the repository root
     dockerfile_path: Dockerfile
     source_dir: .
