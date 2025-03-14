@@ -18,9 +18,12 @@ public class GoCardlessWebHook : ControllerBase
 
     [HttpPost(Name = "GoCardlessWebHook")]
     public void Post([FromBody] GoCardlessWebHookDTO hook)
-    {
-        var ev = hook.events;
-        _logger.Log(LogLevel.Information, $"{ev?.id} : {ev?.created_at} : CAUSE = {ev?.details?.cause}, DESCRIPTION = {ev?.details?.description}");
+    { 
+        //Currenlty 400 error code. 
+        foreach (var ev in hook.events)
+        {
+            _logger.Log(LogLevel.Information, $"{ev?.id} : {ev?.created_at} : CAUSE = {ev?.details?.cause}, DESCRIPTION = {ev?.details?.description}");
+        }
     }
 }
 
