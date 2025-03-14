@@ -4,7 +4,7 @@ using System.Net;
 namespace GoCardlessHook.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class GoCardlessWebHook : ControllerBase
 {
     
