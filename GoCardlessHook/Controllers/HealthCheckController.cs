@@ -7,7 +7,7 @@ namespace GoCardlessHook.Controllers
     [ApiController]
     public class HealthCheckController : ControllerBase
     {
-        [HttpGet(Name = "health")]
+        [HttpGet(Name = "health_check")]
         public void Get()
         {
             
