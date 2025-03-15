@@ -1,26 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Text.Json;
 
 namespace GoCardlessHook.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class GoCardlessWebHook : ControllerBase
+public class GoCardlessWebHookController : ControllerBase
 {
     
 
-    private readonly ILogger<GoCardlessWebHook> _logger;
+    private readonly ILogger<GoCardlessWebHookController> _logger;
 
-    public GoCardlessWebHook(ILogger<GoCardlessWebHook> logger)
+    public GoCardlessWebHookController(ILogger<GoCardlessWebHookController> logger)
     {
         _logger = logger;
     }
 
     [HttpPost(Name = "GoCardlessWebHook")]
-    public void Post([FromBody] GoCardlessWebHookDTO hook)
+    public void Post()
     { 
+       _logger.LogInformation("GoCardlessWebHook called");
+        var requestBody = Request.Body;
+        requestBody.Seek(0, SeekOrigin.Begin);
+        var requestJson = new StreamReader(requestBody).ReadToEnd();
+
+         var doc = JsonSerializer.Deserialize<GoCardlessWebHookDTO>(requestJson);
+
         //Currenlty 400 error code. 
-        foreach (var ev in hook.events)
+        foreach (var ev in doc.events)
         {
             _logger.Log(LogLevel.Information, $"{ev?.id} : {ev?.created_at} : CAUSE = {ev?.details?.cause}, DESCRIPTION = {ev?.details?.description}");
         }
