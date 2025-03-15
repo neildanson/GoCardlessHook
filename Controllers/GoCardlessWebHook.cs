@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace GoCardlessHook.Controllers;
 
@@ -18,11 +19,12 @@ public class GoCardlessWebHookController : ControllerBase
     }
 
     [HttpPost(Name = "GoCardlessWebHook")]
-    public void Post()
+    public async Task Post()
     { 
        _logger.LogInformation("GoCardlessWebHook called");
         var requestBody = Request.Body;
-        var requestJson = new StreamReader(requestBody).ReadToEnd();
+        var reader = new StreamReader(requestBody);
+        var requestJson = await reader.ReadToEndAsync();
 
          var doc = JsonSerializer.Deserialize<GoCardlessWebHookDTO>(requestJson);
 
