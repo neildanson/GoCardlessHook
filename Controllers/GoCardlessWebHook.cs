@@ -22,7 +22,6 @@ public class GoCardlessWebHookController : ControllerBase
     { 
        _logger.LogInformation("GoCardlessWebHook called");
         var requestBody = Request.Body;
-        requestBody.Seek(0, SeekOrigin.Begin);
         var requestJson = new StreamReader(requestBody).ReadToEnd();
 
          var doc = JsonSerializer.Deserialize<GoCardlessWebHookDTO>(requestJson);
