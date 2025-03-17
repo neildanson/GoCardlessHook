@@ -59,19 +59,32 @@ public class GoCardlessWebHookController : ControllerBase
 
         foreach (var ev in doc)
         {
-            var billingRequest = await GetBillingRequest(ev);
-            if (billingRequest != null)
+
+            if (ev.ResourceType == EventResourceType.BillingRequests)
             {
-                var customer = await GetCustomer(ev);
-                if (customer != null)
-                {
-                    _logger.Log(LogLevel.Information, $"Billing Request {ev?.Id} : {ev?.CreatedAt} : {billingRequest?.Id} : {billingRequest?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
-                    return;
-                }
-                _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                await HandleBillingRequest(ev);
             }
-            _logger.Log(LogLevel.Error, $"Unknown Billing Request {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+            else
+            {
+                _logger.Log(LogLevel.Information, $"{ev.ResourceType} : Unknown Event {ev?.Id} : {ev?.CreatedAt} : {ev?.ResourceType} : {ev?.Action} : {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+            }
         }
+    }
+
+    private async Task HandleBillingRequest(Event? ev)
+    {
+        var billingRequest = await GetBillingRequest(ev);
+        if (billingRequest != null)
+        {
+            var customer = await GetCustomer(ev);
+            if (customer != null)
+            {
+                _logger.Log(LogLevel.Information, $"Billing Request {ev?.Id} : {ev?.CreatedAt} : {billingRequest?.Id} : {billingRequest?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                return;
+            }
+            _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+        }
+        _logger.Log(LogLevel.Error, $"Unknown Billing Request {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
     }
 
     private async Task<BillingRequest?> GetBillingRequest(Event? ev)
