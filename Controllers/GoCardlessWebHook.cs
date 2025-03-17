@@ -165,12 +165,12 @@ public class GoCardlessWebHookController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, $"Error getting Customer {ev?.Links.Customer}");
+            _logger.LogError(ex, $"Error getting Customer {customerID}");
             return null;
         }
         catch (GoCardlessException ex)
         {
-            _logger.LogError(ex, $"Error getting Customer {ev?.Links.Customer}");
+            _logger.LogError(ex, $"Error getting Customer {customerID}");
             return null;
         }
     }
