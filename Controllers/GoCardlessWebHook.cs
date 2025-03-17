@@ -86,13 +86,21 @@ public class GoCardlessWebHookController : ControllerBase
         var subscription = await GetSubscription(ev);
         if (subscription != null)
         {
-            var customer = await GetCustomer(ev);
-            if (customer != null)
+            var mandate = await GetMandate(ev);
+            if (mandate != null)
             {
-                _logger.Log(LogLevel.Information, $"Subscription {ev?.Id} : {ev?.CreatedAt} : {subscription?.Id} : {subscription?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                var customer = await GetCustomer(mandate.Links.Customer);
+                if (customer != null)
+                {
+                    _logger.Log(LogLevel.Information, $"Subscription {ev?.Id} : {ev?.CreatedAt} : {subscription?.Id} : {subscription?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                    return;
+                }else
+                {
+                    _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                }
                 return;
             }
-            _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+            _logger.Log(LogLevel.Error, $"Unknown Mandate {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
         }
         _logger.Log(LogLevel.Error, $"Unknown Subscription {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
     }
@@ -102,13 +110,13 @@ public class GoCardlessWebHookController : ControllerBase
         var billingRequest = await GetBillingRequest(ev);
         if (billingRequest != null)
         {
-            var customer = await GetCustomer(ev);
+            var customer = await GetCustomer(ev?.Links?.Customer);
             if (customer != null)
             {
                 _logger.Log(LogLevel.Information, $"Billing Request {ev?.Id} : {ev?.CreatedAt} : {billingRequest?.Id} : {billingRequest?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
                 return;
             }
-            _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+            _logger.Log(LogLevel.Error, $"Unknown Mandate {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
         }
         _logger.Log(LogLevel.Error, $"Unknown Billing Request {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
     }
@@ -134,6 +142,13 @@ public class GoCardlessWebHookController : ControllerBase
         }
     }
 
+    private async Task<Mandate?> GetMandate(Event? ev)
+    {
+        var mandateID = ev?.Links.Mandate;
+        var mandate = await _goCardlessClient.Mandates.GetAsync(mandateID);
+        return mandate?.Mandate;
+    }
+
     private async Task<Subscription?> GetSubscription(Event? ev)
     {
         var subscriptionID = ev?.Links.Subscription;
@@ -141,11 +156,10 @@ public class GoCardlessWebHookController : ControllerBase
         return subscription?.Subscription;
     }
 
-    private async Task<Customer?> GetCustomer(Event? ev)
+    private async Task<Customer?> GetCustomer(string? customerID)
     {
         try
         {
-            var customerID = ev?.Links.Customer;
             var customer = await _goCardlessClient.Customers.GetAsync(customerID);
             return customer?.Customer;
         }
