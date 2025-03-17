@@ -59,18 +59,24 @@ public class GoCardlessWebHookController : ControllerBase
 
         foreach (var ev in doc)
         {
-
-            if (ev.ResourceType == EventResourceType.BillingRequests)
+            try
             {
-                await HandleBillingRequest(ev);
+                if (ev.ResourceType == EventResourceType.BillingRequests)
+                {
+                    await HandleBillingRequest(ev);
+                }
+                else if (ev.ResourceType == EventResourceType.Subscriptions) //Direct Debit
+                {
+                    await HandleSubscription(ev);
+                }
+                else
+                {
+                    _logger.Log(LogLevel.Information, $"{ev.ResourceType} : Unknown Event {ev?.Id} : {ev?.CreatedAt} : {ev?.ResourceType} : {ev?.Action} : {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                }
             }
-            else if (ev.ResourceType == EventResourceType.Subscriptions) //Direct Debit
+            catch (Exception ex)
             {
-                await HandleSubscription(ev);
-            }
-            else
-            {
-                _logger.Log(LogLevel.Information, $"{ev.ResourceType} : Unknown Event {ev?.Id} : {ev?.CreatedAt} : {ev?.ResourceType} : {ev?.Action} : {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                _logger.LogError(ex, $"Error handling event {ev}");
             }
         }
     }
@@ -137,8 +143,21 @@ public class GoCardlessWebHookController : ControllerBase
 
     private async Task<Customer?> GetCustomer(Event? ev)
     {
-        var customerID = ev?.Links.Customer;
-        var customer = await _goCardlessClient.Customers.GetAsync(customerID);
-        return customer?.Customer;
+        try
+        {
+            var customerID = ev?.Links.Customer;
+            var customer = await _goCardlessClient.Customers.GetAsync(customerID);
+            return customer?.Customer;
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, $"Error getting Customer {ev?.Links.Customer}");
+            return null;
+        }
+        catch (GoCardlessException ex)
+        {
+            _logger.LogError(ex, $"Error getting Customer {ev?.Links.Customer}");
+            return null;
+        }
     }
 }
