@@ -1,3 +1,5 @@
+using GoCardless;
+using GoCardless.Resources;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
@@ -9,53 +11,80 @@ namespace GoCardlessHook.Controllers;
 [Route("api/[controller]")]
 public class GoCardlessWebHookController : ControllerBase
 {
-    
+    /*Handle failures
+     * 
+     * bank_authorisation_denied
+     * payer	    billing_request_bank_authorisation_denied	A bank authorisation for this billing request has been denied by the payer.
+     * gocardless	billing_request_bank_authorisation_denied	A bank authorisation for this billing request has been denied by the payer.
+     * 
+     * bank_authorisation_expired
+     * 
+     * payer	    billing_request_bank_authorisation_expired	A bank authorisation for this billing request has expired.
+     * 
+     * bank_authorisation_failed
+     * 
+     * payer	    billing_request_bank_authorisation_failed	A bank authorisation for this billing request has failed.
+     * gocardless	billing_request_bank_authorisation_failed	A bank authorisation for this billing request has failed.
+     * gocardless	insufficient_funds	                        A bank authorisation for this billing request has failed due to insufficient funds.
+     * 
+     * failed
+     * 
+     * gocardless	billing_request_failed	This billing request has failed.
+     * api	        billing_request_failed	This billing request has failed.
+     * 
+     */
 
     private readonly ILogger<GoCardlessWebHookController> _logger;
+    private readonly GoCardlessClient _goCardlessClient;
 
-    public GoCardlessWebHookController(ILogger<GoCardlessWebHookController> logger)
+    public GoCardlessWebHookController(ILogger<GoCardlessWebHookController> logger, GoCardlessClient goCardlessClient)
     {
         _logger = logger;
+        _goCardlessClient = goCardlessClient;
     }
 
     [HttpPost(Name = "GoCardlessWebHook")]
     public async Task Post()
     { 
-       _logger.LogInformation("GoCardlessWebHook called");
+        _logger.LogInformation("GoCardlessWebHook called");
         var requestBody = Request.Body;
         var reader = new StreamReader(requestBody);
         var requestJson = await reader.ReadToEndAsync();
+        var signature = Request.Headers["Webhook-Signature"];
+        var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
 
-         var doc = JsonSerializer.Deserialize<GoCardlessWebHookDTO>(requestJson);
+        var doc = WebhookParser.Parse(requestJson, SECRET, signature);
 
-        //Currenlty 400 error code. 
-        foreach (var ev in doc.events)
+
+
+        foreach (var ev in doc)
         {
-            _logger.Log(LogLevel.Information, $"{ev?.id} : {ev?.created_at} : CAUSE = {ev?.details?.cause}, DESCRIPTION = {ev?.details?.description}");
+            var billingRequest = await GetBillingRequest(ev);
+            if (billingRequest != null)
+            {
+                var customer = await GetCustomer(ev);
+                if (customer != null)
+                {
+                    _logger.Log(LogLevel.Information, $"Billing Request {ev?.Id} : {ev?.CreatedAt} : {billingRequest?.Id} : {billingRequest?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                    return;
+                }
+                _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+            }
+            _logger.Log(LogLevel.Error, $"Unknown Billing Request {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
         }
     }
-}
 
-
-/*
-{
-  "events": {
-    "id": "EV123",
-    "created_at": "2021-04-08T17:01:06.000Z",
-    "resource_type": "billing_requests",
-    "action": "created",
-    "details": {
-      "origin": "api",
-      "cause": "billing_request_created",
-      "description": "This billing request has been created."
-    },
-    "metadata": {},
-    "resource_metadata": {
-      "order_dispatch_date": "2014-05-22"
-    },
-    "links": {
-      "billing_request": "BRQ123"
+    private async Task<BillingRequest?> GetBillingRequest(Event? ev)
+    {
+        var billingRequestID = ev?.Links.BillingRequest;
+        var billingRequest = await _goCardlessClient.BillingRequests.GetAsync(billingRequestID);
+        return billingRequest?.BillingRequest;
     }
-  }
+
+    private async Task<Customer?> GetCustomer(Event? ev)
+    {
+        var customerID = ev?.Links.Customer;
+        var customer = await _goCardlessClient.Customers.GetAsync(customerID);
+        return customer?.Customer;
+    }
 }
-*/
