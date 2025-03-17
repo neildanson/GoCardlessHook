@@ -64,11 +64,31 @@ public class GoCardlessWebHookController : ControllerBase
             {
                 await HandleBillingRequest(ev);
             }
+            else if (ev.ResourceType == EventResourceType.Subscriptions) //Direct Debit
+            {
+                await HandleSubscription(ev);
+            }
             else
             {
                 _logger.Log(LogLevel.Information, $"{ev.ResourceType} : Unknown Event {ev?.Id} : {ev?.CreatedAt} : {ev?.ResourceType} : {ev?.Action} : {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
             }
         }
+    }
+
+    private async Task HandleSubscription(Event? ev)
+    {
+        var subscription = await GetSubscription(ev);
+        if (subscription != null)
+        {
+            var customer = await GetCustomer(ev);
+            if (customer != null)
+            {
+                _logger.Log(LogLevel.Information, $"Subscription {ev?.Id} : {ev?.CreatedAt} : {subscription?.Id} : {subscription?.Status} : {customer?.Id} : {customer?.Email} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+                return;
+            }
+            _logger.Log(LogLevel.Error, $"Unknown Customer {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
+        }
+        _logger.Log(LogLevel.Error, $"Unknown Subscription {ev?.Id} : {ev?.CreatedAt} : CAUSE = {ev?.Details?.Cause}, DESCRIPTION = {ev?.Details?.Description}");
     }
 
     private async Task HandleBillingRequest(Event? ev)
@@ -106,6 +126,13 @@ public class GoCardlessWebHookController : ControllerBase
             _logger.LogError(ex, $"Error getting Billing Request {billingRequestID}");
             return null;
         }
+    }
+
+    private async Task<Subscription?> GetSubscription(Event? ev)
+    {
+        var subscriptionID = ev?.Links.Subscription;
+        var subscription = await _goCardlessClient.Subscriptions.GetAsync(subscriptionID);
+        return subscription?.Subscription;
     }
 
     private async Task<Customer?> GetCustomer(Event? ev)
