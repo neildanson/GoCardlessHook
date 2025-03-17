@@ -83,6 +83,11 @@ public class GoCardlessWebHookController : ControllerBase
             var billingRequest = await _goCardlessClient.BillingRequests.GetAsync(billingRequestID);
             return billingRequest?.BillingRequest;
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, $"Error getting Billing Request {billingRequestID}");
+            return null;
+        }
         catch (GoCardlessException ex)
         {
             _logger.LogError(ex, $"Error getting Billing Request {billingRequestID}");
