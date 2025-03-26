@@ -53,7 +53,7 @@ public class GoCardlessWebHookController : ControllerBase
         var signature = Request.Headers["Webhook-Signature"];
         var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
 
-        _logger.LogDebug($"Secret : {SECRET}, Signature : {signature}");
+        _logger.LogInformation($"Secret : {SECRET}, Signature : {signature}");
 
         var doc = WebhookParser.Parse(requestJson, SECRET, signature);
 
