@@ -9,7 +9,11 @@ public class Program
         var API_KEY = Environment.GetEnvironmentVariable("GO_CARDLESS_APIKEY");
         var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
         var ALL_ENVS = Environment.GetEnvironmentVariables();
-        Console.WriteLine($"{ALL_ENVS}");
+        foreach (var key in ALL_ENVS.Keys)
+        {
+            Console.WriteLine($"{key} : {ALL_ENVS[key]}");
+        }
+        
 
         var builder = WebApplication.CreateBuilder(args);
 
