@@ -6,14 +6,16 @@ public class Program
 {
     public static async Task Main(string[] args)
     {
-        var API_KEY = Environment.GetEnvironmentVariable("GO_CARDLESS_APIKEY");
-        var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
+
         var ALL_ENVS = Environment.GetEnvironmentVariables();
         foreach (var key in ALL_ENVS.Keys)
         {
             Console.WriteLine($"{key} : {ALL_ENVS[key]}");
         }
-        
+        Console.WriteLine("#####################################");
+        var API_KEY = Environment.GetEnvironmentVariable("GO_CARDLESS_APIKEY");
+        var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
+        Console.WriteLine($"API_KEY : {API_KEY}, SECRET {SECRET}");
 
         var builder = WebApplication.CreateBuilder(args);
 
