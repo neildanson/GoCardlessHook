@@ -7,6 +7,9 @@ public class Program
     public static async Task Main(string[] args)
     {
         var API_KEY = Environment.GetEnvironmentVariable("GO_CARDLESS_APIKEY");
+        var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
+
+        Console.WriteLine($"API Key : {API_KEY}, Secret : {SECRET}");
 
         var builder = WebApplication.CreateBuilder(args);
 
