@@ -16,6 +16,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.WebHost.UseUrls("http://0.0.0.0:8080/");
+        
         GoCardlessClient client = GoCardlessClient.Create(
                 // We recommend storing your access token in an
                 // configuration setting for security
@@ -35,6 +36,7 @@ public class Program
         }
 
         app.UseAuthorization();
+        app.UseHttpsRedirection();
 
         app.MapControllers();
 
