@@ -13,8 +13,8 @@ public class Program
             Console.WriteLine($"{key} : {ALL_ENVS[key]}");
         }
         Console.WriteLine("#####################################");
-        var API_KEY = Environment.GetEnvironmentVariable("GO_CARDLESS_APIKEY");
-        var SECRET = Environment.GetEnvironmentVariable("GO_CARDLESS_WEBHOOKSECRET");
+        var API_KEY = Environment.GetEnvironmentVariables()["GO_CARDLESS_APIKEY"]?.ToString();
+        var SECRET = Environment.GetEnvironmentVariables()["GO_CARDLESS_WEBHOOKSECRET"]?.ToString();
         Console.WriteLine($"API_KEY : {API_KEY}, SECRET {SECRET}");
 
         var builder = WebApplication.CreateBuilder(args);
